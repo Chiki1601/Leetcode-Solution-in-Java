@@ -1,33 +1,32 @@
 class Solution {
-       public int findShortestCycle(int n, int[][] edges) {
-        List<List<Integer>> G = new ArrayList<>();
-        for (int i = 0; i < n; ++i) {
-            G.add(new ArrayList<>());
-        }
+           private static final int MX = Integer.MAX_VALUE; 
+    public int findShortestCycle(int n, int[][] edges) {
+        Map<Integer, Set<Integer>> g = new HashMap<>();
         for (int[] e : edges) {
-            G.get(e[0]).add(e[1]);
-            G.get(e[1]).add(e[0]);
+            g.computeIfAbsent(e[0], s -> new HashSet<>()).add(e[1]);
+            g.computeIfAbsent(e[1], s -> new HashSet<>()).add(e[0]);
         }
-        int inf = 10000, res = inf;
-        Function<Integer, Integer> root = i -> {
-            List<Integer> dis = new ArrayList<>(Collections.nCopies(n, inf));
-            dis.set(i, 0);
-            Queue<Integer> bfs = new LinkedList<>(Arrays.asList(i));
-            while (!bfs.isEmpty()) {
-                i = bfs.poll();
-                for (int j : G.get(i)) {
-                    if (dis.get(j) == inf) {
-                        dis.set(j, 1 + dis.get(i));
-                        bfs.offer(j);
-                    } else if (dis.get(i) <= dis.get(j)) {
-                        return dis.get(i) + dis.get(j) + 1;
+        int shortest = MX;
+        for (int i = 0; i < n; ++i) {
+            int[] dist = new int[n], parent = new int[n];
+            Arrays.fill(dist, MX);
+            Arrays.fill(parent, -1);
+            Queue<Integer> q = new LinkedList<>();
+            q.offer(i);
+            dist[i] = 0;
+            while (!q.isEmpty()) {
+                int node = q.poll();
+                for (int kid : g.getOrDefault(node, Collections.emptySet())) {
+                    if (dist[kid] == MX) {
+                        dist[kid] = dist[node] + 1;
+                        parent[kid] = node;
+                        q.offer(kid);
+                    }else if (parent[kid] != node && parent[node] != kid) {
+                        shortest = Math.min(shortest, dist[kid] + dist[node] + 1);
                     }
                 }
             }
-            return inf;
-        };
-        for (int i = 0; i < n; ++i)
-            res = Math.min(res, root.apply(i));
-        return res < inf ? res : -1;
+        }
+        return shortest == MX ? -1 : shortest;
     }
 }
