@@ -1,44 +1,50 @@
 class Solution {
-    public long maxScore(int[] parent, int[] op, int[] score) {
+    public int maxScore(int[] parent, int[] op, int[] score) {
         int n = parent.length;
-        List<List<Integer>> children = new ArrayList<>();
+        List<Integer>[] children = new ArrayList[n];
         for (int i = 0; i < n; i++) {
-            children.add(new ArrayList<>());
+            children[i] = new ArrayList<>();
         }
         for (int i = 1; i < n; i++) {
-            children.get(parent[i]).add(i);
+            children[parent[i]].add(i);
+
         }
-        
-        List<Integer> order = new ArrayList<>();
-        order.add(0);
-        for (int i = 0; i < order.size(); i++) {
-            int u = order.get(i);
-            for (int v : children.get(u)) {
-                order.add(v);
+        int[] order = new int[n];
+
+        int head = 0, tail = 0;
+
+        order[tail++] = 0;
+        while (head < tail) {
+            int u = order[head++];
+            for (int v : children[u]) {
+                order[tail++] = v;
             }
         }
-        
+
         long[] dp = new long[n];
         for (int i = n - 1; i >= 0; i--) {
-            int u = order.get(i);
-            if (children.get(u).isEmpty()) {
+            int u = order[i];
+            if (children[u].isEmpty()) {
                 dp[u] = score[u];
                 continue;
             }
-            long totalSum = 0;
-            long minChild = Long.MAX_VALUE;
-            for (int v : children.get(u)) {
-                totalSum += dp[v];
-                if (dp[v] < minChild) {
-                    minChild = dp[v];
+            long c_sum = 0;
+            long c_dp = Long.MAX_VALUE;
+
+            for (int v : children[u]) {
+                c_sum=c_sum+dp[v];
+                if(dp[v]<c_dp)
+                {
+                    c_dp=dp[v];
                 }
             }
+
             if (op[u] == 1) {
-                dp[u] = score[u] + totalSum - minChild;
+                dp[u] = score[u] + c_sum - c_dp;
             } else {
-                dp[u] = score[u] + totalSum - Math.min(0, minChild);
+                dp[u] = score[u] + c_sum - Math.min(0L, c_dp);
             }
         }
-        return dp[0];
+        return (int) dp[0];
     }
 }
